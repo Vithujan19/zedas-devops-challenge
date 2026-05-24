@@ -1,0 +1,86 @@
+---
+- name: Configure Azure VM with Docker and nginx
+  hosts: web
+  become: true
+
+  tasks:
+
+    # 1. Update system packages
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+
+    # 2. Install required packages
+    - name: Install base packages
+      apt:
+        name:
+          - docker.io
+          - ufw
+        state: present
+
+    # 3. Enable and start Docker
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    # 4. Deploy nginx container
+    - name: Pull nginx image
+      docker_image:
+        name: nginx
+        source: pull
+        tag: alpine
+
+    - name: Run nginx container
+      docker_container:
+        name: nginx
+        image: nginx:alpine
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "80:80"
+
+    # 5. Firewall hardening (UFW)
+    - name: Allow SSH
+      ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+
+    - name: Allow HTTP
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+        policy: deny
+
+    # 6. SSH hardening
+    - name: Disable password authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: Restart SSH service
+      systemd:
+        name: ssh
+        state: restarted
+
+    # 7. Basic validation
+    - name: Check Docker is running
+      command: systemctl status docker
+      register: docker_status
+      changed_when: false
+
+    - name: Show Docker status
+      debug:
+        var: docker_status.stdout_lines
