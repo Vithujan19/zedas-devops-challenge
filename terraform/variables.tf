@@ -31,3 +31,9 @@ variable "allowed_ssh_ip" {
   type        = string
   description = "Your current public IP address to lock down SSH access (CIDR format, e.g., 203.0.113.50/32)"
 }
+
+variable "environment" {
+  type        = string
+  default     = "dev"
+  description = "Environment tag for resources (e.g., dev, stg, prod)"
+}
