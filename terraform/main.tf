@@ -108,7 +108,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   tags = {
-    environment = "demo"
+    environment = var.environment
     managed_by  = "terraform"
     customer    = var.customer_name
   }
