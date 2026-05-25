@@ -166,6 +166,8 @@ terraform validate
 
 ## 5. Review Execution Plan
 
+This repository includes a sample variables file (.tfvars)
+
 ```bash
 terraform plan -var-file="terraform.tfvars"
 ```
@@ -390,6 +392,12 @@ In production environments, the VM would typically be deployed in a private subn
 This project was designed as a lightweight demonstration environment focused on simplicity, maintainability, and operational clarity rather than full production-scale implementation.
 
 Infrastructure is intentionally minimal to align with the exercise scope and expected implementation time.
+
+---
+
+## Testing Note
+
+This repository was prepared without access to an active Azure subscription. Terraform formatting, validation, and static security checks were completed locally/through CI. End-to-end Azure deployment was not executed.
 
 ---
 
