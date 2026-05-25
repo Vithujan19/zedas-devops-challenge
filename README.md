@@ -126,6 +126,12 @@ cd zedas-devops-challenge
 
 ## 2. Configure Terraform Variables
 
+change directory to terraform
+
+```bash
+cd terraform
+```
+
 Update values inside `terraform.tfvars`:
 
 ```hcl
@@ -182,13 +188,9 @@ when prompted.
 
 ---
 
-# Accessing the VM
+# Accessing the VM (If needed)
 
-Retrieve outputs:
-
-```bash
-terraform output
-```
+Retrieve VM Public IP(PUBLIC_IP):
 
 SSH into the VM:
 
@@ -203,7 +205,7 @@ ssh azureuser@<PUBLIC_IP>
 Move to ansible directory:
 
 ```bash
-cd ../ansible
+cd ansible
 ```
 
 Update `inventory.ini` with VM public IP.
@@ -264,6 +266,122 @@ yes
 ```
 
 when prompted.
+
+---
+
+# Operational Runbook
+
+## Scenario: VM Is Unreachable
+
+Recommended troubleshooting steps:
+
+1. Verify VM provisioning state in Azure Portal
+2. Confirm VM is powered on
+3. Verify Public IP is attached correctly
+4. Check NSG inbound rules for SSH and HTTP
+5. Ensure current public IP matches `allowed_ssh_ip`
+6. Test SSH connectivity:
+   ```bash
+   nc -zv <PUBLIC_IP> 22
+   ```
+7. Verify subnet and routing configuration
+8. Check UFW firewall status on VM
+9. Verify SSH service status:
+   ```bash
+   systemctl status ssh
+   ```
+
+---
+
+# Security Considerations
+
+This implementation includes several basic security measures:
+
+- SSH password authentication disabled
+- SSH key-based authentication enabled
+- SSH access restricted to trusted public IP
+- Minimal inbound ports exposed
+- UFW firewall enabled
+- No secrets committed into repository
+
+---
+
+# Design Decisions
+
+## Why Terraform?
+
+Terraform was selected for Infrastructure-as-Code because it provides:
+
+- declarative infrastructure provisioning
+- reusable configuration
+- consistent deployments
+- easy teardown and recreation
+
+---
+
+## Why Ansible?
+
+Ansible was used for configuration management because it provides:
+
+- agentless automation
+- idempotent configuration
+- clean separation between infrastructure and OS/application setup
+
+---
+
+## Why Subnet-Level NSG Association?
+
+Initially, the NSG was associated directly with the network interface. After reviewing Checkov findings, the implementation was improved by associating the NSG at subnet level instead.
+
+This provides:
+- centralized network security management
+- consistent policy enforcement
+- easier scalability for future resources within the subnet
+
+---
+
+# Trade-offs and Next Steps
+
+Given additional time, the following improvements would be implemented.
+
+## Infrastructure Improvements
+
+- Configure remote Terraform backend using Azure Storage Account
+- Enable Terraform state locking
+- Introduce reusable Terraform modules
+- Add environment separation (dev/staging/prod)
+
+---
+
+## Security Improvements
+
+- Replace direct public VM exposure with private subnet architecture
+- Use Azure Application Gateway or Load Balancer with HTTPS
+- Replace public SSH access with Azure Bastion or VPN
+- Enable Microsoft Defender for Cloud
+- Add monitoring and alerting
+
+---
+
+## Operational Improvements
+
+- Add VM health monitoring script
+- Add centralized logging
+- Add Ansible linting into CI pipeline
+- Add automated backup policies
+
+---
+
+# Checkov Findings and Accepted Trade-offs
+
+Some Checkov findings related to public IP usage and HTTP exposure are intentionally accepted because the homework challenge explicitly requires:
+
+- a public IP
+- a reachable nginx web service
+
+SSH access is restricted to a trusted administrative IP using NSG rules.
+
+In production environments, the VM would typically be deployed in a private subnet behind Application Gateway or Load Balancer with HTTPS termination.
 
 ---
 
